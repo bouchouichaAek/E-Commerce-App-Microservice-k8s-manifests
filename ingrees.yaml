@@ -4,7 +4,6 @@ metadata:
   name: app-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
-    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
   rules:
     - host: shophub.local
@@ -17,3 +16,4 @@ spec:
                 name: users-service
                 port:
                   number: 5000
+
