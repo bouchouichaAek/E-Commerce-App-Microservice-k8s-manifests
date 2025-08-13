@@ -3,30 +3,16 @@ kind: Ingress
 metadata:
   name: app-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   rules:
     - host: shophub.local
       http:
         paths:
-          - path: /api/users
+          - path: /api/users(/|$)(.*)
             pathType: Prefix
             backend:
               service:
-                name: auth-service
+                name: users-service
                 port:
                   number: 5000
-          # - path: /api/products
-          #   pathType: Prefix
-          #   backend:
-          #     service:
-          #       name: product-service
-          #       port:
-          #         number: 5001
-          # - path: /api/orders
-          #   pathType: Prefix
-          #   backend:
-          #     service:
-          #       name: orders-service
-          #       port:
-          #         number: 5002
