@@ -13,7 +13,7 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: users-service
+                name: auth-service
                 port:
                   number: 5000
 
