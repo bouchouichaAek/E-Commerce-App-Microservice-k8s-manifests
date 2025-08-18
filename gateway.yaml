@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kong
+  template:
+    metadata:
+      labels:
+        app: kong
+    spec:
+      containers:
+        - name: kong
+          image: kong:3.6.0
+          env:
+            - name: KONG_DATABASE
+              value: "off"
+            - name: KONG_DECLARATIVE_CONFIG
+              value: /kong/kong.yaml
+            - name: KONG_PROXY_ACCESS_LOG
+              value: "/dev/stdout"
+            - name: KONG_ADMIN_ACCESS_LOG
+              value: "/dev/stdout"
+            - name: KONG_PROXY_ERROR_LOG
+              value: "/dev/stderr"
+            - name: KONG_ADMIN_ERROR_LOG
+              value: "/dev/stderr"
+            - name: KONG_ADMIN_LISTEN
+              value: "0.0.0.0:8001"
+          ports:
+            - containerPort: 8000
+            - containerPort: 8001
+          volumeMounts:
+            - name: kong-config-volume
+              mountPath: /kong
+      volumes:
+        - name: kong-config-volume
+          configMap:
+            name: kong-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-proxy
+  namespace: default
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8000
+      name: http
+    - port: 443
+      targetPort: 8443
+      name: https
+  selector:
+    app: kong
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kong-admin
+  namespace: default
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8001
+      targetPort: 8001
+      name: admin
+  selector:
+    app: kong
+
+
+# curl.exe -i -X POST http://localhost:8001/services --data name=auth-service --data url='http://auth-service.default.svc.cluster.local:5000'
+# curl.exe -i -X POST http://localhost:8001/services --data name=auth-service --data url='http://auth-service.default.svc.cluster.local:5000'
+# curl.exe -i -X POST http://localhost:8001/services/auth-service/routes --data 'paths[]=/auth'
+# curl.exe -i -X POST http://localhost:8001/services/auth-service/routes --data 'paths[]=/users'

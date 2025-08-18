@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-db-deployment
+  name: product-db-deployment
   namespace: default
 spec:
   replicas: 1
@@ -18,30 +18,30 @@ spec:
         image: mysql:8.0
         envFrom:
           - configMapRef:
-              name: auth-config
+              name: product-config
           - secretRef:
-              name: auth-secrets
+              name: product-secrets
         env:
           - name: MYSQL_ROOT_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: auth-secrets
+                name: product-secrets
                 key: MYSQL_ROOT_PASSWORD
           - name: MYSQL_USER
             valueFrom:
               secretKeyRef:
-                name: auth-secrets
+                name: product-secrets
                 key: MYSQL_USER
           - name: MYSQL_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: auth-secrets
+                name: product-secrets
                 key: MYSQL_PASSWORD
           - name: MYSQL_DATABASE
             valueFrom:
               configMapKeyRef:
-                name: auth-config
-                key: USER_DB
+                name: product-config
+                key: PRODUCT_DB
 
 
         ports:
@@ -52,61 +52,61 @@ spec:
       volumes:
       - name: mysql-data
         persistentVolumeClaim:
-          claimName: data-pvc-auth
+          claimName: data-pvc-product
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-deployment
+  name: product-deployment
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: auth
+      app: product
   template:
     metadata:
       labels:
-        app: auth
+        app: product
     spec:
       initContainers:
       - name: wait-for-mysql
         image: busybox:1.36
-        command: ['sh', '-c', 'until nc -z user-db-service 3306; do echo "waiting for mysql..."; sleep 5; done;']
-      
+        command: ['sh', '-c', 'until nc -z product-db-service 3306; do echo "waiting for product-db..."; sleep 5; done;']
+
       containers:
-      - name: auth-service
-        image: abdelkader97/auth-service:latest
+      - name: product-service
+        image: abdelkader97/product-service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
         envFrom:
           - configMapRef:
-              name: auth-config
+              name: product-config
           - secretRef:
-              name: auth-secrets
+              name: product-secrets
         env:
           - name: DB_HOST
-            value: user-db-service
+            value: product-db-service
           - name: DB_USER
             valueFrom:
               secretKeyRef:
-                name: auth-secrets
+                name: product-secrets
                 key: MYSQL_USER
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: auth-secrets
+                name: product-secrets
                 key: MYSQL_PASSWORD
           - name: DB_NAME 
             valueFrom:
               configMapKeyRef:
-                name: auth-config
-                key: USER_DB
+                name: product-config
+                key: PRODUCT_DB
           - name: JWT_SECRET 
             valueFrom:
               secretKeyRef:
-                name: auth-secrets
+                name: product-secrets
                 key: JWT_SECRET
           - name: JWT_EXPIRY 
             valueFrom:
@@ -115,3 +115,13 @@ spec:
                 key: JWT_EXPIRY
           - name: PORT
             value: "5000"
+          - name: AUTH_SERVICE
+            valueFrom:
+              configMapKeyRef:
+                name: product-config
+                key: AUTH_SERVICE
+          - name: PRODUCT_SERVICE
+            valueFrom:
+              configMapKeyRef:
+                name: product-config
+                key: PRODUCT_SERVICE
