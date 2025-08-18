@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: product-db-deployment
+  name: order-db-deployment
   namespace: default
 spec:
   replicas: 1
@@ -18,30 +18,30 @@ spec:
         image: mysql:8.0
         envFrom:
           - configMapRef:
-              name: product-config
+              name: order-config
           - secretRef:
-              name: product-secrets
+              name: order-secrets
         env:
           - name: MYSQL_ROOT_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: product-secrets
+                name: order-secrets
                 key: MYSQL_ROOT_PASSWORD
           - name: MYSQL_USER
             valueFrom:
               secretKeyRef:
-                name: product-secrets
+                name: order-secrets
                 key: MYSQL_USER
           - name: MYSQL_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: product-secrets
+                name: order-secrets
                 key: MYSQL_PASSWORD
           - name: MYSQL_DATABASE
             valueFrom:
               configMapKeyRef:
-                name: product-config
-                key: PRODUCT_DB
+                name: order-config
+                key: ORDER_DB
 
 
         ports:
@@ -52,76 +52,81 @@ spec:
       volumes:
       - name: mysql-data
         persistentVolumeClaim:
-          claimName: data-pvc-product
+          claimName: data-pvc-order
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: product-deployment
+  name: order-deployment
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: product
+      app: order
   template:
     metadata:
       labels:
-        app: product
+        app: order
     spec:
       initContainers:
       - name: wait-for-mysql
         image: busybox:1.36
-        command: ['sh', '-c', 'until nc -z product-db-service 3306; do echo "waiting for product-db..."; sleep 5; done;']
+        command: ['sh', '-c', 'until nc -z order-db-service 3306; do echo "waiting for order-db..."; sleep 5; done;']
 
       containers:
-      - name: product-service
-        image: abdelkader97/product-service:latest
+      - name: order-service
+        image: abdelkader97/order-service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
         envFrom:
           - configMapRef:
-              name: product-config
+              name: order-config
           - secretRef:
-              name: product-secrets
+              name: order-secrets
         env:
           - name: DB_HOST
-            value: product-db-service
+            value: order-db-service
           - name: DB_USER
             valueFrom:
               secretKeyRef:
-                name: product-secrets
+                name: order-secrets
                 key: MYSQL_USER
           - name: DB_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: product-secrets
+                name: order-secrets
                 key: MYSQL_PASSWORD
           - name: DB_NAME 
             valueFrom:
               configMapKeyRef:
-                name: product-config
-                key: PRODUCT_DB
+                name: order-config
+                key: ORDER_DB
           - name: JWT_SECRET 
             valueFrom:
               secretKeyRef:
-                name: product-secrets
+                name: order-secrets
                 key: JWT_SECRET
           - name: JWT_EXPIRY 
             valueFrom:
               configMapKeyRef:
-                name: product-config
+                name: order-config
                 key: JWT_EXPIRY
           - name: PORT
             value: "5000"
           - name: AUTH_SERVICE
             valueFrom:
               configMapKeyRef:
-                name: product-config
+                name: order-config
                 key: AUTH_SERVICE
           - name: PRODUCT_SERVICE
             valueFrom:
               configMapKeyRef:
-                name: product-config
+                name: order-config
                 key: PRODUCT_SERVICE
+          - name: ORDER_SERVICE
+            valueFrom:
+              configMapKeyRef:
+                name: order-config
+                key: ORDER_SERVICE

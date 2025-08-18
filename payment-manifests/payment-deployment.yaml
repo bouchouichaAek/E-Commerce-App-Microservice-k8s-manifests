@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment
+  template:
+    metadata:
+      labels:
+        app: payment
+    spec:
+      containers:
+      - name: payment-service
+        image: abdelkader97/payment-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        envFrom:
+          - configMapRef:
+              name: payment-config
+          - secretRef:
+              name: payment-secrets
+        env:
+          - name: JWT_SECRET 
+            valueFrom:
+              secretKeyRef:
+                name: payment-secrets
+                key: JWT_SECRET
+          - name: JWT_EXPIRY 
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: JWT_EXPIRY
+          - name: PORT
+            value: "5000"
+          - name: AUTH_SERVICE
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: AUTH_SERVICE
+          - name: PRODUCT_SERVICE
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: PRODUCT_SERVICE
+          - name: ORDER_SERVICE
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: ORDER_SERVICE
+          - name: PAYMENT_SERVICE
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: PAYMENT_SERVICE
+          - name: CHECKOUT_URL
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: CHECKOUT_URL
+          - name: CHARGILY_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: payment-secrets
+                key: CHARGILY_API_KEY
+          - name: CHARGILY_API_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: payment-secrets
+                key: CHARGILY_API_SECRET
+          - name: CHARGILY_API_MODE
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: CHARGILY_API_MODE
+          - name: RABBITMQ_PROTOCOL
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: RABBITMQ_PROTOCOL
+          - name: RABBITMQ_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: RABBITMQ_HOST
+          - name: RABBITMQ_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: payment-config
+                key: RABBITMQ_PORT
+          - name: RABBITMQ_USER
+            valueFrom:
+              secretKeyRef:
+                name: payment-secrets
+                key: RABBITMQ_USER
+          - name: RABBITMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: payment-secrets
+                key: RABBITMQ_PASSWORD
