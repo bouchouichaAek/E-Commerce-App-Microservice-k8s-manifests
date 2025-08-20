@@ -42,8 +42,6 @@ spec:
               configMapKeyRef:
                 name: auth-config
                 key: USER_DB
-
-
         ports:
         - containerPort: 3306
         volumeMounts:

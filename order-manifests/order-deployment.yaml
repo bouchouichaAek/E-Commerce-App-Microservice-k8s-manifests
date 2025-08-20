@@ -130,3 +130,8 @@ spec:
               configMapKeyRef:
                 name: order-config
                 key: ORDER_SERVICE
+          - name: PAYMENT_SERVICE
+            valueFrom:
+              configMapKeyRef:
+                name: order-config
+                key: PAYMENT_SERVICE

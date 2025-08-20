@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification
+  template:
+    metadata:
+      labels:
+        app: notification
+    spec:
+      containers:
+      - name: notification-service
+        image: abdelkader97/notification-service:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: TWILIO_ACCOUNT_SID
+          valueFrom:
+            secretKeyRef:
+              name: notification-secrets
+              key: TWILIO_ACCOUNT_SID
+        - name: TWILIO_AUTH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: notification-secrets
+              key: TWILIO_AUTH_TOKEN
+        - name: EMAIL_USER
+          valueFrom:
+            secretKeyRef:
+              name: notification-secrets
+              key: EMAIL_USER
+        - name: EMAIL_PASS
+          valueFrom:
+            secretKeyRef:
+              name: notification-secrets
+              key: EMAIL_PASS
+        - name: RABBITMQ_PROTOCOL
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: RABBITMQ_PROTOCOL
+        - name: RABBITMQ_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: RABBITMQ_HOST
+        - name: RABBITMQ_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: RABBITMQ_PORT
+        - name: RABBITMQ_USER
+          valueFrom:
+            secretKeyRef:
+              name: notification-secrets
+              key: RABBITMQ_USER
+        - name: RABBITMQ_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: notification-secrets
+              key: RABBITMQ_PASSWORD
+        - name: AUTH_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: AUTH_SERVICE
+        - name: PRODUCT_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: PRODUCT_SERVICE
+        - name: ORDER_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: ORDER_SERVICE
+        - name: PAYMENT_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: notification-config
+              key: PAYMENT_SERVICE
